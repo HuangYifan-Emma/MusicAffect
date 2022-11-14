@@ -13,9 +13,80 @@ import RadioGroup from '@mui/material/RadioGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import FormControl from '@mui/material/FormControl';
 import FormLabel from '@mui/material/FormLabel';
+import React from 'react';
+import FormHelperText from '@mui/material/FormHelperText';
+import PropTypes from 'prop-types';
+import Tabs from '@mui/material/Tabs';
+import Tab from '@mui/material/Tab';
+import Box from '@mui/material/Box';
+// FOR TEST ONLY!
+import {testFormFields, testWordRatingFields} from './TestFields';
+
+
+function TabPanel(props) {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`vertical-tabpanel-${index}`}
+      aria-labelledby={`vertical-tab-${index}`}
+      {...other}
+    >
+      {value === index && (
+        <Box sx={{ p: 3 }}>
+          <Typography>{children}</Typography>
+        </Box>
+      )}
+    </div>
+  );
+}
+
+TabPanel.propTypes = {
+  children: PropTypes.node,
+  index: PropTypes.number.isRequired,
+  value: PropTypes.number.isRequired,
+};
+
+function a11yProps(index) {
+  return {
+    id: `vertical-tab-${index}`,
+    'aria-controls': `vertical-tabpanel-${index}`,
+  };
+}
 
 
 
+function RatingRadio(props) {
+  const [error, setError] = React.useState(props.value === 0);
+
+  const handleRadioChange = (event) => {
+    props.setValue(props.name, event.target.value);
+    setError(false);
+  };
+
+  return (
+    <FormControl
+      component="fieldset"
+      error={error}
+      variant="standard">
+      <FormLabel color="success">{props.label}</FormLabel>
+      <RadioGroup
+        aria-label={props.name}
+        name={props.name}
+        row
+        value={props.value}
+        onChange={handleRadioChange}>
+        {Array.from({length: 5}, (_, i) => i + 1).map((i) =>
+          <FormControlLabel key={i} value={i} control={<Radio/>}
+                            label={i} labelPlacement="bottom"/>
+        )}
+      </RadioGroup>
+      <FormHelperText>{error ? 'Please select an option.' : ''}</FormHelperText>
+    </FormControl>
+  );
+}
 
 function shuffle(array) {
   let currentIndex = array.length, randomIndex;
@@ -31,8 +102,48 @@ function shuffle(array) {
   return array;
 }
 
+const wordArray = [
+  'Breathy',
+  'Bright',
+  'Clear/Pure',
+  'Creaky',
+  'Dark',
+  'Distorted',
+  'Erratic',
+  'Full',
+  'Harsh/Strident',
+  'Nasal',
+  'Noisy',
+  'Percussive',
+  'Quiet/Hushed',
+  'Round',
+  'Sharp/Crisp',
+  'Shrill',
+  'Sustained/Resonant',
+  'Thin',
+  'Woody'];
+
+const getOneExcerptWordKeyArray = (wordArray, excerptID) => {
+  return wordArray.map((word) => `Excerpt${excerptID}_${word}`);
+}
+
+const getAllExcerptsWordObject = (
+  wordArray, firstExcerptID, lastExcerptID, initialValue) => {
+  const getExcerptWordObject = (wordArray, excerptID) => wordArray.reduce(
+    (item, value) => ({
+      ...item,
+      [`Excerpt${excerptID}_${value}`]: initialValue,
+    }), {});
+  const wordObjectArray = Array.from(
+    {length: lastExcerptID - firstExcerptID + 1}, (_, i) => i + 1)
+      .map((i) => getExcerptWordObject(wordArray, i));
+  return Object.assign({}, ...wordObjectArray);
+};
+
 function Group2Form(props) {
-  const [formFields, setFormFields] = useState({
+  const testMode = false;
+
+  const initialFormFields = {
     /*
     'section1_piece1': '',
     'section1_piece2': '',
@@ -41,7 +152,7 @@ function Group2Form(props) {
     'section2_piece1': '',
     'section2_piece2': '',
     'section2_piece3': '',
-    */
+    
     'Excerpt1': '',
     'Excerpt2': '',
     'Excerpt3': '',
@@ -57,6 +168,7 @@ function Group2Form(props) {
     'Excerpt13': '',
     'Excerpt14': '',
     'Excerpt15': '',
+*/
     'FamiliarityRatingExcerpt1': 0,
     'FamiliarityRatingExcerpt2': 0,
     'FamiliarityRatingExcerpt3': 0,
@@ -73,8 +185,8 @@ function Group2Form(props) {
     'FamiliarityRatingExcerpt14': 0,
     'FamiliarityRatingExcerpt15': 0,
     'Name': '',
-    'Age': 0,
-    'Years': 0,
+    'Age': '',
+    'Years': '',
     'MusicIdentity': '',
     'ListenHabit': '',
     'StringQuartetFamiliarity': 0,
@@ -85,7 +197,12 @@ function Group2Form(props) {
     'ExtendedTechFamiliarity': 0,
     'LachenmannFamiliarity': 0,
     'Feedback': ''
-  });
+  };
+  const initialWordRatingFields = getAllExcerptsWordObject(wordArray, 1, 15, 0);
+
+  const [formFields, setFormFields] = useState(testMode ? testFormFields : initialFormFields);
+  const [wordRatingFields, setwordRatingFields] = useState(testMode ? testWordRatingFields : initialWordRatingFields);
+
   const [dialogStatus, setDialogStatus] = useState({
     'open': false,
     'status': 'incomplete',
@@ -107,6 +224,13 @@ function Group2Form(props) {
     }));
   };
 
+  const changeWordRatingFields = (name, value) => {
+    setwordRatingFields((prevState) => ({
+      ...prevState,
+      [name]: value
+    }));
+  }
+    
   const saveJson = () => {
     let jsonData = {};
    /* props.section1.forEach((e, i) => {
@@ -130,7 +254,9 @@ function Group2Form(props) {
    jsonData['LachenmannFamiliarity'] = formFields.LachenmannFamiliarity;
    jsonData['Feedback'] = formFields.Feedback;
 
-
+    // TODO: add for wordRatingFields
+    // Object.assign(jsonData, wordRatingFields);
+    
     props.section3.forEach((e, i) => {
       jsonData[e] = formFields['Excerpt' + ((i+1).toString())];
     })
@@ -138,6 +264,11 @@ function Group2Form(props) {
       jsonData['FamiliarityRatingExcerpt'+ e] = formFields['FamiliarityRatingExcerpt'+ ((i+1).toString())];
     })
 
+    for (let i = 1; i < 16; i++){
+      for (let j = 0; j < 19; j++){
+        jsonData[props.section3[i-1] + '_' + wordArray[j]] = wordRatingFields["Excerpt" + i +'_' + wordArray[j]];
+      }
+    }
     jsonData['question1'] = formFields.question1;
     
     
@@ -147,6 +278,8 @@ function Group2Form(props) {
   };
 
   const onSubmit = () => {
+    // if (Object.values(formFields).includes('') ||
+    //     Object.values(wordRatingFields).includes(0)) {
     if (Object.values(formFields).includes('')) {
       setDialogStatus({
         'open': true,
@@ -235,28 +368,59 @@ function Group2Form(props) {
         </audio>
         {/* display file name*/}
         {/*<Typography variant="body1">{props.section3[i]}</Typography>*/}
-        <TextField
-          label="Your description"
-          multiline
-          maxRows={3}
-          fullWidth
-          error={!formValue}
-          required
-          helperText="Cannot be empty."
-          name={'Excerpt' + ((i + 1).toString())}
-          value={formValue}
-          onChange={changeFormFields}
-        />
+        
       </Stack>
     </div>;
   };
 
+  const [value, setValue] = React.useState(0);
+
+  const handleChange = (event, newValue) => {
+    setValue(newValue);
+  }
+
   return (
+  <Box
+      sx={{ flexGrow: 1, bgcolor: 'background.paper', display: 'flex' }}>
+      <Tabs
+        orientation="vertical"
+        variant="scrollable"
+        value={value}
+        onChange={handleChange}
+        aria-label="Vertical tabs example"
+        sx={{ borderRight: 1, borderColor: 'divider', minWidth: 'min-content', maxWidth: 'min-content', marginRight: "24px"}}
+      >
+        <Tab label="Instruction" {...a11yProps(0)} />
+        <Tab label="Participant Information" {...a11yProps(1)} />
+        <Tab label="Familiarity Questions" {...a11yProps(2)} />
+        <Tab label="Excerpt1" {...a11yProps(3)} />
+        <Tab label="Excerpt2" {...a11yProps(4)} />
+        <Tab label="Excerpt3" {...a11yProps(5)} />
+        <Tab label="Excerpt4" {...a11yProps(6)} />
+        <Tab label="Excerpt5" {...a11yProps(7)} />
+        <Tab label="Excerpt6" {...a11yProps(8)} />
+        <Tab label="Excerpt7" {...a11yProps(9)} />
+        <Tab label="Excerpt8" {...a11yProps(10)} />
+        <Tab label="Excerpt9" {...a11yProps(11)} />
+        <Tab label="Excerpt10" {...a11yProps(12)} />
+        <Tab label="Excerpt11" {...a11yProps(13)} />
+        <Tab label="Excerpt12" {...a11yProps(14)} />
+        <Tab label="Excerpt13" {...a11yProps(15)} />
+        <Tab label="Excerpt14" {...a11yProps(16)} />
+        <Tab label="Excerpt15" {...a11yProps(17)} />
+        <Tab label="Post Experiment Interview" {...a11yProps(18)} />
+
+      </Tabs>
+
+      
+      
       <Stack
         direction="column"
         justifyContent="center"
         alignItems="stretch"
-        spacing={8}>
+        spacing={8}
+        sx={{display: "contents"}}>
+      <TabPanel value={value} index={0}>
         <Stack
           direction="column"
           justifyContent="flex-start"
@@ -264,11 +428,18 @@ function Group2Form(props) {
           spacing={4}>
           <Typography variant="h3" component="div"
                       style={{alignSelf: 'center'}}>
-            MUMT616 Experiment
+            MUMT616 Experiment Phase 2
+          </Typography>
+          <Typography variant="h5" component="div">
+           Please read the following instruction carefully
           </Typography>
           <Typography variant="body1" component="div" >
-          After providing some personal background information, you will be asked to describe the timbre of fifteen excerpts for string quartet. These excerpts range from two seconds to one minute. Please use your best pair of headphones when listening to these examples. The experiment should take between 10 and 15 minutes.
+          Please conduct this survey at a computer with your best pair of headphones. The experiment should take 20 minutes.           </Typography>
+          <Typography variant="body1" component="div" >
+          <b>Once you have submitted the form, a text file of your answers should download automatically; please send the file to whoever referred you to the experiment.</b>
           </Typography>
+          <Typography variant="body1" component="div" >
+          After providing some personal background information, you will be asked to listen to fifteen short excerpts for string quartet, and rate to what degree a list of descriptors apply to the timbre of the excerpt in question; insofar as it is possible, try to limit your application of these descriptors to just the use of timbre, and not other parameters (e.g. harmony, melody, rhythm, etc.).          </Typography>
           <Typography variant="body1" component="div" >
           The Oxford English Dictionary defines timbre as "the character or quality of a musical sound or voice as distinct from its pitch and intensity." For example, timbre would be the quality of a sound that aids in distinguishing the sound of a clarinet from the sound of a trombone. Examples of timbral descriptors would include calling the flute clear, the trumpet brassy, or the bassoon woody.
           </Typography>
@@ -279,7 +450,9 @@ function Group2Form(props) {
           */}
         </Stack>
         <Divider/>
-        
+
+        </TabPanel>
+
         {/*
         <Stack
           direction="column"
@@ -328,6 +501,7 @@ function Group2Form(props) {
           
 
 {/* writing quesitons*/}
+    <TabPanel value={value} index={1}>
         <Stack
         direction="column"
         justifyContent="flex-start"
@@ -349,6 +523,7 @@ function Group2Form(props) {
           fullWidth
           required
           name="Name"
+          value={formFields['Name']}
           helperText="Cannot be empty."
           onChange={changeFormFields}
           />
@@ -366,6 +541,7 @@ function Group2Form(props) {
           fullWidth
           required
           name="Age"
+          value={formFields['Age']}
           helperText="Cannot be empty."
           onChange={changeFormFields}
           />
@@ -383,6 +559,7 @@ function Group2Form(props) {
           fullWidth
           required
           name="Years"
+          value={formFields['Years']}
           helperText="Cannot be empty."
           onChange={changeFormFields}
           />
@@ -399,6 +576,7 @@ function Group2Form(props) {
           fullWidth
           required
           name="MusicIdentity"
+          value={formFields['MusicIdentity']}
           helperText="Cannot be empty."
           onChange={changeFormFields}
           />
@@ -415,16 +593,19 @@ function Group2Form(props) {
           fullWidth
           required
           name="ListenHabit"
+          value={formFields['ListenHabit']}
           helperText="Cannot be empty."
           onChange={changeFormFields}
           />
         </Stack>
         </Stack>
         <Divider/>
+        </TabPanel>
 
         
 
 {/* Familiarity with the string quartet */}
+<TabPanel value={value} index={2}>
         <Stack direction="column" justifyContent="center" 
              spacing={2}>
           <Typography variant="h4" component="div"
@@ -432,7 +613,7 @@ function Group2Form(props) {
             Familiarity with the string quartet and its instruments
           </Typography>
           <Typography>
-             (1 is not familiar at all, 5 is very familiar)
+             <b>(1 is not familiar at all, 5 is very familiar)</b>
           </Typography>
       
           <FormControl component="fieldset">
@@ -442,6 +623,7 @@ function Group2Form(props) {
             <RadioGroup 
               row 
               name="StringQuartetFamiliarity"
+              value={formFields['StringQuartetFamiliarity']}
               onChange={changeFormFields}>
               <FormControlLabel value={1} control={<Radio />} label="1" />
               <FormControlLabel value={2} control={<Radio />} label="2" />
@@ -458,6 +640,7 @@ function Group2Form(props) {
             <RadioGroup 
               row 
               name="ViolinFamiliarity"
+              value={formFields['ViolinFamiliarity']}
               onChange={changeFormFields}>
               <FormControlLabel value={1} control={<Radio />} label="1" />
               <FormControlLabel value={2} control={<Radio />} label="2" />
@@ -474,6 +657,7 @@ function Group2Form(props) {
             <RadioGroup 
               row 
               name="ViolaFamiliarity"
+              value={formFields['ViolaFamiliarity']}
               onChange={changeFormFields}>
               <FormControlLabel value={1} control={<Radio />} label="1" />
               <FormControlLabel value={2} control={<Radio />} label="2" />
@@ -491,6 +675,7 @@ function Group2Form(props) {
             <RadioGroup 
               row 
               name="CelloFamiliarity"
+              value={formFields['CelloFamiliarity']}
               onChange={changeFormFields}>
               <FormControlLabel value={1} control={<Radio />} label="1" />
               <FormControlLabel value={2} control={<Radio />} label="2" />
@@ -503,11 +688,12 @@ function Group2Form(props) {
           
         </Stack>
         <Divider/>
-        
+        </TabPanel>
 
+        <TabPanel value={value} index={3}>
         <Typography variant="h4" component="div"
                       style={{alignSelf: 'center'}}>
-            Listen to 15 Excerpts of standard music and describe the timbre of each
+            Listen to 15 Excerpts of music and rate
             </Typography>
 
             
@@ -518,6 +704,25 @@ function Group2Form(props) {
           {getSection3PieceComponent(0, formFields.Excerpt1)}
           <FormControl component="fieldset">
             <FormLabel component="legend">
+            <b>Rate how well each of the descriptions listed describes the music excerpts
+            (A rating of 1 indicates that the word or group of words is not at all appropriate to describe the music, while a rating of 5 indicates that at least one of the presented words is very appropriate.)</b>
+          </FormLabel>
+          {getOneExcerptWordKeyArray(wordArray, 1).map((item, index) => 
+            <Typography>
+            
+              <Stack direction="column" alignItems="center" spacing={2}>
+                <RatingRadio name={item}
+                           value={wordRatingFields[item]}
+                           setValue={changeWordRatingFields}
+                           label={wordArray[index]}/>
+              </Stack>
+            
+            </Typography>)}
+          
+          </FormControl>
+          <Stack direction="column" alignItems="center" spacing={2}>
+          <FormControl component="fieldset">
+            <FormLabel component="legend">
             How familiar are you with Excerpt 1?
           </FormLabel>
           <Typography>
@@ -526,6 +731,7 @@ function Group2Form(props) {
             <RadioGroup 
               row  
               name="FamiliarityRatingExcerpt1"
+              value={formFields['FamiliarityRatingExcerpt1']}
               onChange={changeFormFields}>
               <FormControlLabel value={1} control={<Radio />} label="1" />
               <FormControlLabel value={2} control={<Radio />} label="2" />
@@ -535,18 +741,44 @@ function Group2Form(props) {
             </RadioGroup>
           </FormControl>
           </Stack>
+          </Stack>
+          </TabPanel>
 
 {/*Excerpt2*/}
+<TabPanel value={value} index={4}>
           <Stack>
           <Divider>Excerpt 2</Divider>
           {getSection3PieceComponent(1, formFields.Excerpt2)}
           <FormControl component="fieldset">
             <FormLabel component="legend">
+            Rate how well each of the descriptions listed describes the music excerpts
+            (A rating of 1 indicates that the word or group of words is not at all appropriate to describe the music, while a rating of 5 indicates that at least one of the presented words is very appropriate.)
+          </FormLabel>
+          {getOneExcerptWordKeyArray(wordArray, 2).map((item, index) => 
+            <Typography>
+            
+              <Stack direction="column" alignItems="center" spacing={2}>
+                <RatingRadio name={item}
+                           value={wordRatingFields[item]}
+                           setValue={changeWordRatingFields}
+                           label={wordArray[index]}/>
+              </Stack>
+            
+            </Typography>)}
+          
+          </FormControl>
+          <Stack direction="column" alignItems="center" spacing={2}>
+          <FormControl component="fieldset">
+            <FormLabel component="legend">
             How familiar are you with Excerpt 2?
           </FormLabel>
+          <Typography>
+             (1 is not familiar at all, 5 is very familiar)
+          </Typography>
             <RadioGroup 
               row  
               name="FamiliarityRatingExcerpt2"
+              value={formFields['FamiliarityRatingExcerpt2']}
               onChange={changeFormFields}>
               <FormControlLabel value={1} control={<Radio />} label="1" />
               <FormControlLabel value={2} control={<Radio />} label="2" />
@@ -556,18 +788,43 @@ function Group2Form(props) {
             </RadioGroup>
           </FormControl>
           </Stack>
+          </Stack>
+          </TabPanel>
 
 {/*Excerpt3*/}
+<TabPanel value={value} index={5}>
           <Stack>
           <Divider>Excerpt 3</Divider>
           {getSection3PieceComponent(2, formFields.Excerpt3)}
           <FormControl component="fieldset">
             <FormLabel component="legend">
+            A rating of 1 indicates that the word or group of words is not at all appropriate to describe the music, while a rating of 5 indicates that at least one of the presented words is very appropriate.
+          </FormLabel>
+          {getOneExcerptWordKeyArray(wordArray, 3).map((item, index) => 
+            <Typography>
+            
+              <Stack direction="column" alignItems="center" spacing={2}>
+                <RatingRadio name={item}
+                           value={wordRatingFields[item]}
+                           setValue={changeWordRatingFields}
+                           label={wordArray[index]}/>
+              </Stack>
+            
+            </Typography>)}
+          
+          </FormControl>
+          <Stack direction="column" alignItems="center" spacing={2}>
+          <FormControl component="fieldset">
+            <FormLabel component="legend">
             How familiar are you with Excerpt 3?
           </FormLabel>
+          <Typography>
+             (1 is not familiar at all, 5 is very familiar)
+          </Typography>
             <RadioGroup 
               row  
               name="FamiliarityRatingExcerpt3"
+              value={formFields['FamiliarityRatingExcerpt3']}
               onChange={changeFormFields}>
               <FormControlLabel value={1} control={<Radio />} label="1" />
               <FormControlLabel value={2} control={<Radio />} label="2" />
@@ -577,18 +834,43 @@ function Group2Form(props) {
             </RadioGroup>
           </FormControl>
           </Stack>
+          </Stack>
+          </TabPanel>
 
 {/*Excerpt4*/}
+<TabPanel value={value} index={6}>
           <Stack>
           <Divider>Excerpt 4</Divider>
           {getSection3PieceComponent(3, formFields.Excerpt4)}
           <FormControl component="fieldset">
             <FormLabel component="legend">
+            A rating of 1 indicates that the word or group of words is not at all appropriate to describe the music, while a rating of 5 indicates that at least one of the presented words is very appropriate.
+          </FormLabel>
+          {getOneExcerptWordKeyArray(wordArray, 4).map((item, index) => 
+            <Typography>
+            
+              <Stack direction="column" alignItems="center" spacing={2}>
+                <RatingRadio name={item}
+                           value={wordRatingFields[item]}
+                           setValue={changeWordRatingFields}
+                           label={wordArray[index]}/>
+              </Stack>
+            
+            </Typography>)}
+          
+          </FormControl>
+          <Stack direction="column" alignItems="center" spacing={2}>
+          <FormControl component="fieldset">
+            <FormLabel component="legend">
             How familiar are you with Excerpt 4?
           </FormLabel>
+          <Typography>
+             (1 is not familiar at all, 5 is very familiar)
+          </Typography>
             <RadioGroup 
               row  
               name="FamiliarityRatingExcerpt4"
+              value={formFields['FamiliarityRatingExcerpt4']}
               onChange={changeFormFields}>
               <FormControlLabel value={1} control={<Radio />} label="1" />
               <FormControlLabel value={2} control={<Radio />} label="2" />
@@ -598,18 +880,43 @@ function Group2Form(props) {
             </RadioGroup>
           </FormControl>
           </Stack>
+          </Stack>
+          </TabPanel>
 
 {/*Excerpt5*/}
+<TabPanel value={value} index={7}>
           <Stack>
           <Divider>Excerpt 5</Divider>
           {getSection3PieceComponent(4, formFields.Excerpt5)}
           <FormControl component="fieldset">
             <FormLabel component="legend">
+            A rating of 1 indicates that the word or group of words is not at all appropriate to describe the music, while a rating of 5 indicates that at least one of the presented words is very appropriate.
+          </FormLabel>
+          {getOneExcerptWordKeyArray(wordArray, 5).map((item, index) => 
+            <Typography>
+            
+              <Stack direction="column" alignItems="center" spacing={2}>
+                <RatingRadio name={item}
+                           value={wordRatingFields[item]}
+                           setValue={changeWordRatingFields}
+                           label={wordArray[index]}/>
+              </Stack>
+            
+            </Typography>)}
+          
+          </FormControl>
+          <Stack direction="column" alignItems="center" spacing={2}>
+          <FormControl component="fieldset">
+            <FormLabel component="legend">
             How familiar are you with Excerpt 5?
           </FormLabel>
+          <Typography>
+             (1 is not familiar at all, 5 is very familiar)
+          </Typography>
             <RadioGroup 
               row  
               name="FamiliarityRatingExcerpt5"
+              value={formFields['FamiliarityRatingExcerpt5']}
               onChange={changeFormFields}>
               <FormControlLabel value={1} control={<Radio />} label="1" />
               <FormControlLabel value={2} control={<Radio />} label="2" />
@@ -619,18 +926,43 @@ function Group2Form(props) {
             </RadioGroup>
           </FormControl>
           </Stack>
+          </Stack>
+          </TabPanel>
 
 {/*Excerpt6*/}
+<TabPanel value={value} index={8}>
           <Stack>
           <Divider>Excerpt 6</Divider>
           {getSection3PieceComponent(5, formFields.Excerpt6)}
           <FormControl component="fieldset">
             <FormLabel component="legend">
+            A rating of 1 indicates that the word or group of words is not at all appropriate to describe the music, while a rating of 5 indicates that at least one of the presented words is very appropriate.
+          </FormLabel>
+          {getOneExcerptWordKeyArray(wordArray, 6).map((item, index) => 
+            <Typography>
+            
+              <Stack direction="column" alignItems="center" spacing={2}>
+                <RatingRadio name={item}
+                           value={wordRatingFields[item]}
+                           setValue={changeWordRatingFields}
+                           label={wordArray[index]}/>
+              </Stack>
+            
+            </Typography>)}
+          
+          </FormControl>
+          <Stack direction="column" alignItems="center" spacing={2}>
+          <FormControl component="fieldset">
+            <FormLabel component="legend">
             How familiar are you with Excerpt 6?
           </FormLabel>
+          <Typography>
+             (1 is not familiar at all, 5 is very familiar)
+          </Typography>
             <RadioGroup 
               row  
               name="FamiliarityRatingExcerpt6"
+              value={formFields['FamiliarityRatingExcerpt6']}
               onChange={changeFormFields}>
               <FormControlLabel value={1} control={<Radio />} label="1" />
               <FormControlLabel value={2} control={<Radio />} label="2" />
@@ -640,18 +972,43 @@ function Group2Form(props) {
             </RadioGroup>
           </FormControl>
           </Stack>
+          </Stack>
+          </TabPanel>
 
 {/*Excerpt7*/}
+<TabPanel value={value} index={9}>
           <Stack>
           <Divider>Excerpt 7</Divider>
           {getSection3PieceComponent(6, formFields.Excerpt7)}
           <FormControl component="fieldset">
             <FormLabel component="legend">
+            A rating of 1 indicates that the word or group of words is not at all appropriate to describe the music, while a rating of 5 indicates that at least one of the presented words is very appropriate.
+          </FormLabel>
+          {getOneExcerptWordKeyArray(wordArray, 7).map((item, index) => 
+            <Typography>
+            
+              <Stack direction="column" alignItems="center" spacing={2}>
+                <RatingRadio name={item}
+                           value={wordRatingFields[item]}
+                           setValue={changeWordRatingFields}
+                           label={wordArray[index]}/>
+              </Stack>
+            
+            </Typography>)}
+          
+          </FormControl>
+          <Stack direction="column" alignItems="center" spacing={2}>
+          <FormControl component="fieldset">
+            <FormLabel component="legend">
             How familiar are you with Excerpt 7?
           </FormLabel>
+          <Typography>
+             (1 is not familiar at all, 5 is very familiar)
+          </Typography>
             <RadioGroup 
               row  
               name="FamiliarityRatingExcerpt7"
+              value={formFields['FamiliarityRatingExcerpt7']}
               onChange={changeFormFields}>
               <FormControlLabel value={1} control={<Radio />} label="1" />
               <FormControlLabel value={2} control={<Radio />} label="2" />
@@ -661,18 +1018,43 @@ function Group2Form(props) {
             </RadioGroup>
           </FormControl>
           </Stack>
+          </Stack>
+          </TabPanel>
 
 {/*Excerpt8*/}
+<TabPanel value={value} index={10}>
           <Stack>
           <Divider>Excerpt 8</Divider>
           {getSection3PieceComponent(7, formFields.Excerpt8)}
           <FormControl component="fieldset">
             <FormLabel component="legend">
+            A rating of 1 indicates that the word or group of words is not at all appropriate to describe the music, while a rating of 5 indicates that at least one of the presented words is very appropriate.
+          </FormLabel>
+          {getOneExcerptWordKeyArray(wordArray, 8).map((item, index) => 
+            <Typography>
+            
+              <Stack direction="column" alignItems="center" spacing={2}>
+                <RatingRadio name={item}
+                           value={wordRatingFields[item]}
+                           setValue={changeWordRatingFields}
+                           label={wordArray[index]}/>
+              </Stack>
+            
+            </Typography>)}
+          
+          </FormControl>
+          <Stack direction="column" alignItems="center" spacing={2}>
+          <FormControl component="fieldset">
+            <FormLabel component="legend">
             How familiar are you with Excerpt 8?
           </FormLabel>
+          <Typography>
+             (1 is not familiar at all, 5 is very familiar)
+          </Typography>
             <RadioGroup 
               row  
               name="FamiliarityRatingExcerpt8"
+              value={formFields['FamiliarityRatingExcerpt8']}
               onChange={changeFormFields}>
               <FormControlLabel value={1} control={<Radio />} label="1" />
               <FormControlLabel value={2} control={<Radio />} label="2" />
@@ -682,18 +1064,43 @@ function Group2Form(props) {
             </RadioGroup>
           </FormControl>
           </Stack>
+          </Stack>
+          </TabPanel>
 
 {/*Excerpt9*/}
+<TabPanel value={value} index={11}>
           <Stack>
           <Divider>Excerpt 9</Divider>
           {getSection3PieceComponent(8, formFields.Excerpt9)}
           <FormControl component="fieldset">
             <FormLabel component="legend">
+            A rating of 1 indicates that the word or group of words is not at all appropriate to describe the music, while a rating of 5 indicates that at least one of the presented words is very appropriate.
+          </FormLabel>
+          {getOneExcerptWordKeyArray(wordArray, 9).map((item, index) => 
+            <Typography>
+            
+              <Stack direction="column" alignItems="center" spacing={2}>
+                <RatingRadio name={item}
+                           value={wordRatingFields[item]}
+                           setValue={changeWordRatingFields}
+                           label={wordArray[index]}/>
+              </Stack>
+            
+            </Typography>)}
+          
+          </FormControl>
+          <Stack direction="column" alignItems="center" spacing={2}>
+          <FormControl component="fieldset">
+            <FormLabel component="legend">
             How familiar are you with Excerpt 9?
           </FormLabel>
+          <Typography>
+             (1 is not familiar at all, 5 is very familiar)
+          </Typography>
             <RadioGroup 
               row  
               name="FamiliarityRatingExcerpt9"
+              value={formFields['FamiliarityRatingExcerpt9']}
               onChange={changeFormFields}>
               <FormControlLabel value={1} control={<Radio />} label="1" />
               <FormControlLabel value={2} control={<Radio />} label="2" />
@@ -702,19 +1109,44 @@ function Group2Form(props) {
               <FormControlLabel value={5} control={<Radio />} label="5" />    
             </RadioGroup>
           </FormControl>
+          </Stack>
           </Stack> 
+</TabPanel>
 
 {/*Excerpt10*/}
+<TabPanel value={value} index={12}>
           <Stack>
           <Divider>Excerpt 10</Divider>
           {getSection3PieceComponent(9, formFields.Excerpt10)}
           <FormControl component="fieldset">
             <FormLabel component="legend">
+            A rating of 1 indicates that the word or group of words is not at all appropriate to describe the music, while a rating of 5 indicates that at least one of the presented words is very appropriate.
+          </FormLabel>
+          {getOneExcerptWordKeyArray(wordArray, 10).map((item, index) => 
+            <Typography>
+            
+              <Stack direction="column" alignItems="center" spacing={2}>
+                <RatingRadio name={item}
+                           value={wordRatingFields[item]}
+                           setValue={changeWordRatingFields}
+                           label={wordArray[index]}/>
+              </Stack>
+            
+            </Typography>)}
+          
+          </FormControl>
+          <Stack direction="column" alignItems="center" spacing={2}>
+          <FormControl component="fieldset">
+            <FormLabel component="legend">
             How familiar are you with Excerpt 10?
           </FormLabel>
+          <Typography>
+             (1 is not familiar at all, 5 is very familiar)
+          </Typography>
             <RadioGroup 
               row  
               name="FamiliarityRatingExcerpt10"
+              value={formFields['FamiliarityRatingExcerpt10']}
               onChange={changeFormFields}>
               <FormControlLabel value={1} control={<Radio />} label="1" />
               <FormControlLabel value={2} control={<Radio />} label="2" />
@@ -724,18 +1156,43 @@ function Group2Form(props) {
             </RadioGroup>
           </FormControl>
           </Stack>
+          </Stack>
+          </TabPanel>
 
 {/*Excerpt11*/}
+<TabPanel value={value} index={13}>
           <Stack>
           <Divider>Excerpt 11</Divider>
           {getSection3PieceComponent(10, formFields.Excerpt11)}
           <FormControl component="fieldset">
             <FormLabel component="legend">
+            A rating of 1 indicates that the word or group of words is not at all appropriate to describe the music, while a rating of 5 indicates that at least one of the presented words is very appropriate.
+          </FormLabel>
+          {getOneExcerptWordKeyArray(wordArray, 11).map((item, index) => 
+            <Typography>
+            
+              <Stack direction="column" alignItems="center" spacing={2}>
+                <RatingRadio name={item}
+                           value={wordRatingFields[item]}
+                           setValue={changeWordRatingFields}
+                           label={wordArray[index]}/>
+              </Stack>
+            
+            </Typography>)}
+          
+          </FormControl>
+          <Stack direction="column" alignItems="center" spacing={2}>
+          <FormControl component="fieldset">
+            <FormLabel component="legend">
             How familiar are you with Excerpt 11?
           </FormLabel>
+          <Typography>
+             (1 is not familiar at all, 5 is very familiar)
+          </Typography>
             <RadioGroup 
               row  
               name="FamiliarityRatingExcerpt11"
+              value={formFields['FamiliarityRatingExcerpt11']}
               onChange={changeFormFields}>
               <FormControlLabel value={1} control={<Radio />} label="1" />
               <FormControlLabel value={2} control={<Radio />} label="2" />
@@ -745,15 +1202,40 @@ function Group2Form(props) {
             </RadioGroup>
           </FormControl>
           </Stack>
+          </Stack>
+          </TabPanel>
 
 {/*Excerpt12*/}
+<TabPanel value={value} index={14}>
           <Stack>
           <Divider>Excerpt 12</Divider>
           {getSection3PieceComponent(11, formFields.Excerpt12)}
           <FormControl component="fieldset">
             <FormLabel component="legend">
-            How familiar are you with Excerpt 12?
+            A rating of 1 indicates that the word or group of words is not at all appropriate to describe the music, while a rating of 5 indicates that at least one of the presented words is very appropriate.
           </FormLabel>
+          {getOneExcerptWordKeyArray(wordArray, 12).map((item, index) => 
+            <Typography>
+            
+              <Stack direction="column" alignItems="center" spacing={2}>
+                <RatingRadio name={item}
+                           value={wordRatingFields[item]}
+                           setValue={changeWordRatingFields}
+                           label={wordArray[index]}/>
+              </Stack>
+            
+            </Typography>)}
+          
+          </FormControl>
+          <Stack direction="column" alignItems="center" spacing={2}>
+          <FormControl component="fieldset">
+            <FormLabel component="legend">
+            How familiar are you with Excerpt 12?
+            value={formFields['FamiliarityRatingExcerpt12']}
+          </FormLabel>
+          <Typography>
+             (1 is not familiar at all, 5 is very familiar)
+          </Typography>
             <RadioGroup 
               row  
               name="FamiliarityRatingExcerpt12"
@@ -766,18 +1248,44 @@ function Group2Form(props) {
             </RadioGroup>
           </FormControl>
           </Stack>
+          </Stack>
+</TabPanel>
 
 {/*Excerpt13*/}
+
+<TabPanel value={value} index={15}>
           <Stack>
           <Divider>Excerpt 13</Divider>
           {getSection3PieceComponent(12, formFields.Excerpt13)}
           <FormControl component="fieldset">
             <FormLabel component="legend">
+            A rating of 1 indicates that the word or group of words is not at all appropriate to describe the music, while a rating of 5 indicates that at least one of the presented words is very appropriate.
+          </FormLabel>
+          {getOneExcerptWordKeyArray(wordArray, 13).map((item, index) => 
+            <Typography>
+            
+              <Stack direction="column" alignItems="center" spacing={2}>
+                <RatingRadio name={item}
+                           value={wordRatingFields[item]}
+                           setValue={changeWordRatingFields}
+                           label={wordArray[index]}/>
+              </Stack>
+            
+            </Typography>)}
+          
+          </FormControl>
+          <Stack direction="column" alignItems="center" spacing={2}>
+          <FormControl component="fieldset">
+            <FormLabel component="legend">
             How familiar are you with Excerpt 13?
           </FormLabel>
+          <Typography>
+             (1 is not familiar at all, 5 is very familiar)
+          </Typography>
             <RadioGroup 
               row  
               name="FamiliarityRatingExcerpt13"
+              value={formFields['FamiliarityRatingExcerpt13']}
               onChange={changeFormFields}>
               <FormControlLabel value={1} control={<Radio />} label="1" />
               <FormControlLabel value={2} control={<Radio />} label="2" />
@@ -787,18 +1295,44 @@ function Group2Form(props) {
             </RadioGroup>
           </FormControl>
           </Stack>
+          </Stack>
+</TabPanel>
 
 {/*Excerpt14*/}
+
+<TabPanel value={value} index={16}>
           <Stack>
           <Divider>Excerpt 14</Divider>
           {getSection3PieceComponent(13, formFields.Excerpt14)}
           <FormControl component="fieldset">
             <FormLabel component="legend">
+            A rating of 1 indicates that the word or group of words is not at all appropriate to describe the music, while a rating of 5 indicates that at least one of the presented words is very appropriate.
+          </FormLabel>
+          {getOneExcerptWordKeyArray(wordArray, 14).map((item, index) => 
+            <Typography>
+            
+              <Stack direction="column" alignItems="center" spacing={2}>
+                <RatingRadio name={item}
+                           value={wordRatingFields[item]}
+                           setValue={changeWordRatingFields}
+                           label={wordArray[index]}/>
+              </Stack>
+            
+            </Typography>)}
+          
+          </FormControl>
+          <Stack direction="column" alignItems="center" spacing={2}>
+          <FormControl component="fieldset">
+            <FormLabel component="legend">
             How familiar are you with Excerpt 14?
           </FormLabel>
+          <Typography>
+             (1 is not familiar at all, 5 is very familiar)
+          </Typography>
             <RadioGroup 
               row  
               name="FamiliarityRatingExcerpt14"
+              value={formFields['FamiliarityRatingExcerpt14']}
               onChange={changeFormFields}>
               <FormControlLabel value={1} control={<Radio />} label="1" />
               <FormControlLabel value={2} control={<Radio />} label="2" />
@@ -808,18 +1342,43 @@ function Group2Form(props) {
             </RadioGroup>
           </FormControl>
           </Stack>
+          </Stack>
+</TabPanel>
 
 {/*Excerpt15*/}
+<TabPanel value={value} index={17}>
           <Stack>
           <Divider>Excerpt 15</Divider>
           {getSection3PieceComponent(14, formFields.Excerpt15)}
           <FormControl component="fieldset">
             <FormLabel component="legend">
+            A rating of 1 indicates that the word or group of words is not at all appropriate to describe the music, while a rating of 5 indicates that at least one of the presented words is very appropriate.
+          </FormLabel>
+          {getOneExcerptWordKeyArray(wordArray, 15).map((item, index) => 
+            <Typography>
+            
+              <Stack direction="column" alignItems="center" spacing={2}>
+                <RatingRadio name={item}
+                           value={wordRatingFields[item]}
+                           setValue={changeWordRatingFields}
+                           label={wordArray[index]}/>
+              </Stack>
+            
+            </Typography>)}
+          
+          </FormControl>
+          <Stack direction="column" alignItems="center" spacing={2}>
+          <FormControl component="fieldset">
+            <FormLabel component="legend">
             How familiar are you with Excerpt 15?
           </FormLabel>
+          <Typography>
+             (1 is not familiar at all, 5 is very familiar)
+          </Typography>
             <RadioGroup 
               row  
               name="FamiliarityRatingExcerpt15"
+              value={formFields['FamiliarityRatingExcerpt15']}
               onChange={changeFormFields}>
               <FormControlLabel value={1} control={<Radio />} label="1" />
               <FormControlLabel value={2} control={<Radio />} label="2" />
@@ -829,7 +1388,11 @@ function Group2Form(props) {
             </RadioGroup>
           </FormControl>
           </Stack>
+          
+          </Stack>
+          
           <Divider/>
+          </TabPanel>
 
        {/*}   
           <FormControl component="fieldset">
@@ -852,7 +1415,8 @@ function Group2Form(props) {
             </FormControl>
       */}
 
-        {/* Familiarity with the string quartet */}
+        {/* Familiarity with the music */}
+        <TabPanel value={value} index={18}>
         <Stack direction="column" justifyContent="center" 
              spacing={2}>
           <Typography variant="h4" component="div"
@@ -867,6 +1431,7 @@ function Group2Form(props) {
             <RadioGroup 
               row 
               name="ContemporaryFamiliarity"
+              value={formFields['ContemporaryFamiliarity']}
               onChange={changeFormFields}>
               <FormControlLabel value={1} control={<Radio />} label="1" />
               <FormControlLabel value={2} control={<Radio />} label="2" />
@@ -883,6 +1448,7 @@ function Group2Form(props) {
             <RadioGroup 
               row 
               name="ExtendedTechFamiliarity"
+              value={formFields['ExtendedTechFamiliarity']}
               onChange={changeFormFields}>
               <FormControlLabel value={1} control={<Radio />} label="1" />
               <FormControlLabel value={2} control={<Radio />} label="2" />
@@ -900,6 +1466,7 @@ function Group2Form(props) {
             <RadioGroup 
               row 
               name="LachenmannFamiliarity"
+              value={formFields['LachenmannFamiliarity']}
               onChange={changeFormFields}>
               <FormControlLabel value={1} control={<Radio />} label="1" />
               <FormControlLabel value={2} control={<Radio />} label="2" />
@@ -930,25 +1497,29 @@ function Group2Form(props) {
           fullWidth
           required
           name="Feedback"
+          value={formFields['Feedback']}
           onChange={changeFormFields}
           />
           <Typography>
-             When you click submit, a jason file of your experiment answer will be downloaded automatically. Please send to us! Thank you!
+          <b>Once you have submitted the form, a text file(.json) of your answers should download automatically; please send the file to whoever referred you to the experiment.</b>
           </Typography>
         </Stack>
-
-        </Stack>
-          
-        </Stack>
         <Divider>Experiment Finished</Divider>
+  
         <Button variant="contained" endIcon={<SendIcon/>} size="large" color="secondary"
-                onClick={onSubmit}>
+          onClick={onSubmit}>
           Submit
         </Button>
         <SubmitDialog open={dialogStatus.open} status={dialogStatus.status} onClose={handleDialogClose}/>
+        </Stack>
+        </TabPanel>
+        </Stack>
+       
       </Stack>
+        
+      </Box>
   );
-}
+  }
 
 export default function Group2FormPage() {
   // const section1AudioArray = [
@@ -985,7 +1556,7 @@ export default function Group2FormPage() {
   let shuffledSection3AudioArray = shuffle(section3AudioArray);
 
   return (
-    <Container maxWidth="md" style={{marginTop: '36px', marginBottom: '36px'}}>
+    <Container maxWidth="lg" style={{marginTop: '36px', marginBottom: '36px'}}>
       <Group2Form
       //section1={shuffledSection1AudioArray}
       //section2={shuffledSection2AudioArray}
