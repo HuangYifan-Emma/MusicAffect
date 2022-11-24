@@ -1,5 +1,5 @@
 {
-  "name": "mumt616-forms",
+  "name": "mumt617-experiment",
   "homepage": ".",
   "version": "0.1.0",
   "private": true,
@@ -13,6 +13,7 @@
     "@testing-library/user-event": "^12.1.10",
     "file-saver": "^2.0.5",
     "history": "^5.1.0",
+    "prop-types": "^15.8.1",
     "react": "^17.0.2",
     "react-audio-player": "^0.17.0",
     "react-dom": "^17.0.2",
