@@ -1,4 +1,5 @@
 import Container from '@mui/material/Container';
+import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Divider from '@mui/material/Divider';
@@ -455,45 +456,124 @@ function Group2Form(props) {
       <Stack direction="column" justifyContent="center" alignItems="stretch"
              spacing={8} sx={{display: 'contents'}}>
         <TabPanel value={value} index={0}>
-          <Stack direction="column" justifyContent="flex-start"
-                 alignItems="center" spacing={4}>
+          <Stack direction="column" justifyContent="flex-start" spacing={2}>
             <Typography variant="h3" component="div"
-                        style={{alignSelf: 'center'}}>
-              MUMT-617 Experiment: Music Affect
+                        style={{alignSelf: 'center', marginBottom: '12px'}}>
+              Perceived Affect of Music Pieces
             </Typography>
-            <Typography variant="h5" component="div">
-              Please read the following instruction carefully
-            </Typography>
+            <Alert severity="info">Please read the following instructions
+              carefully. Thank you!</Alert>
             <Typography variant="body1" component="div">
-              Please conduct this survey at a computer with your best pair of
+              Please conduct this survey on a computer with your best pair of
               headphones. The experiment should take 20 minutes.
             </Typography>
             <Typography variant="body1" component="div">
               <b>
                 Once you have submitted the form, a text file of your answers
-                should download automatically; please send
-                the file to whoever referred you to the experiment.
+                should download automatically. Please send the file to whoever
+                referred you to the experiment.
               </b>
             </Typography>
             <Typography variant="body1" component="div">
-              After providing some personal background information, you will be
-              asked to listen to fifteen short
-              excerpts for string quartet, and rate to what degree a list of
-              descriptors apply to the timbre of the
-              excerpt in question; insofar as it is possible, try to limit your
-              application of these descriptors to just
-              the use of timbre, and not other parameters (e.g. harmony, melody,
-              rhythm, etc.).{' '}
+              Our experiment is to explore the <b><i>perceived
+              emotion</i></b> in music. In this experiment, you need to listen
+              to 10 short pieces of music, each one lasting for 1 minute, and
+              rate the overall perceived emotion and emotion changes in the
+              pieces. Thank you for your participation!
+            </Typography>
+            <Typography variant="h4" component="div">
+              Perceived emotions
             </Typography>
             <Typography variant="body1" component="div">
-              The Oxford English Dictionary defines timbre as "the character or
-              quality of a musical sound or voice as
-              distinct from its pitch and intensity." For example, timbre would
-              be the quality of a sound that aids in
-              distinguishing the sound of a clarinet from the sound of a
-              trombone. Examples of timbral descriptors would
-              include calling the flute clear, the trumpet brassy, or the
-              bassoon woody.
+              <b>Perceived</b> emotions are emotions you think the music is
+              trying to <b>convey</b> or <b>communicate</b> to the listeners. It
+              may or may not be the same as the emotions you are
+              currently <b>feeling</b>.
+              For example, you might be feeling happy, but when a particular
+              piece of music is played, you can <b>recognize</b> it as being
+              a sad piece of music.
+            </Typography>
+            <Typography variant="body1" component="div">
+              In this experiment, you will be required to think about
+              the <b>perceived</b> emotion in the sound, rather than what the
+              sound makes you feel.
+            </Typography>
+            <Typography variant="h4" component="div">
+              Dimensions of emotions
+            </Typography>
+            <Typography variant="body1" component="div">
+              Emotions have different dimensions. We use three dimensions in
+              our experiment to measure emotions.
+              They are <b>valence</b>, <b>energy arousal</b>,
+              and <b>tension arousal</b>.
+            </Typography>
+            <Typography variant="body1" component="div">
+              <strong>Valence</strong>: This dimension describes the range of
+              pleasantness. The range is labelled
+              from <strong>unpleasant</strong> to <strong>pleasant</strong>.
+              Happy and peaceful, for instance, have a positive valence, which
+              means more pleasant. Sad and fearful, on the other hand, have a
+              negative valence, which means they are more unpleasant.
+              <br/>
+              <strong>Tension arousal</strong>: This dimension describes the
+              degree of tension an emotion might have. The range is labelled
+              from <strong>relaxed</strong> to <strong>tense</strong>. Angry,
+              for example, may have high-tension arousal. Calm, for example, may
+              have lower tension arousal, which means it is more relaxed.
+              <br/>
+              <strong>Energy arousal</strong>: This dimension describes the
+              amount of energy an emotion might have. The range is labelled
+              from <strong>tired</strong> to <strong>awake</strong>. Excited,
+              for instance, has high energy arousal, which means it is more
+              awake. Depressed, on the other hand, has very low energy arousal,
+              which means it is more tired.
+            </Typography>
+            <Typography variant="body1" component="div">
+              Emotions are usually made up of a combination of different levels
+              of each dimension, and each dimension is continuous. Perceived
+              emotions may also change along with the music pieces.
+            </Typography>
+            <Typography variant="body1" component="div">
+              In this experiment, you will need to listen to 10 different pieces
+              and rate the different levels of each dimension of the perceived
+              emotion, and figure out the perceived emotion changes.
+            </Typography>
+            <Typography variant="h4" component="div">
+              Instructions
+            </Typography>
+            <Typography variant="ul" component="div">
+              <li>First, please fill in the questionnaire about your personal
+                musical background information.
+              </li>
+              <li>Then, go to "Excerpt 1" to start.</li>
+              <li>You will listen to 10 different pieces in this experiment.
+              </li>
+              <li>In each trial, you need to click to play the music, be sure to
+                listen to the end since it is important to do the following
+                rating.
+              </li>
+              <li>You will then rate the overall perceived emotion that the
+                sound is trying to convey along each of the three dimensions.
+                You must rate each sound on each dimension before continuing to
+                the next task. Try to use the whole slider to express your
+                perception.
+              </li>
+              <li>Then, you need to figure out "How much does the perceived
+                emotion change in each dimension?" and rate the change amount.
+              </li>
+              <li>You need to fill in the blank to indicate what changes in
+                music make you perceive the changes in emotion the music is
+                trying to convey.
+              </li>
+              <li>Then you will rate your personal familiarity with this
+                piece.
+              </li>
+              <li>You can listen to the piece as many times as you want to
+                refresh your impression of it.
+              </li>
+              <li>After completing these tasks, click the next Excerpt in the
+                sidebar to move on.
+              </li>
             </Typography>
           </Stack>
         </TabPanel>
