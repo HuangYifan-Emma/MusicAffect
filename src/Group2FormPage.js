@@ -593,7 +593,7 @@ function Group2Form(props) {
                      alignItems="center" spacing={2}>
                 <Typography component="div">What is your full name?</Typography>
                 <TextField
-                  label="Frist name last name"
+                  label="First name last name"
                   multiline
                   maxRows={3}
                   fullWidth
