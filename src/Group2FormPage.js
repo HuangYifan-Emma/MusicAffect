@@ -180,6 +180,7 @@ const getOneExcerptWordKeyArray = (wordArray, excerptID) => {
 };
 
 function Group2Form(props) {
+  // FOR TEST ONLY!
   const testMode = false;
 
   const initialBasicInfoFields = {
@@ -780,7 +781,8 @@ function Group2Form(props) {
 }
 
 export default function Group2FormPage() {
-
+  // FOR TEST ONLY!
+  const shuffleExcerpts = true;
   const section3AudioArray = [
     'Excerpt1',
     'Excerpt2',
@@ -798,13 +800,16 @@ export default function Group2FormPage() {
   let shuffledSection1AudioArray = shuffle(section1AudioArray);
   let shuffledSection2AudioArray = shuffle(section2AudioArray);
   */
-  let shuffledSection3AudioArray = shuffle(section3AudioArray);
+  let shuffledSection3AudioArray;
+  if (shuffleExcerpts === true) {
+    shuffledSection3AudioArray = shuffle(section3AudioArray);
+  } else {
+    shuffledSection3AudioArray = section3AudioArray;
+  }
 
   return (
     <Container maxWidth="lg" style={{marginTop: '36px', marginBottom: '36px'}}>
       <Group2Form
-        //section1={shuffledSection1AudioArray}
-        //section2={shuffledSection2AudioArray}
         section3={shuffledSection3AudioArray}
       />
     </Container>
